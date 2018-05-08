@@ -15,10 +15,11 @@ from keras.optimizers import Adam
 import argparse
 from find_closest_allele import closest_allele
 import os
+import sys
 MHCNUGGETS_HOME = "/mnt/disk005/data/pipelines/modules/Proteomics/internal/mhcnuggets-public/mhcIInuggets"
 
 
-def predict(model, weights_path, peptides_path, mhc):
+def predict(model, weights_path, peptides_path, mhc, output):
     '''
     Training protocol
     '''
@@ -56,8 +57,16 @@ def predict(model, weights_path, peptides_path, mhc):
     # test model
     preds_continuous, preds_binary = get_predictions(peptides_tensor, model)
     ic50s = [dataset.map_proba_to_ic50(p[0]) for p in preds_continuous]
+
+    # write out results
+    if output:
+        filehandle = open(output, 'w')
+    else:
+        filehandle = sys.stdout
+
+    print(','.join(('peptide', 'ic50')), file=filehandle)
     for i, peptide in enumerate(peptides):
-        print(peptide, ic50s[i])
+        print(','.join((peptide, str(ic50s[i]))), file=filehandle)
 
 
 def parse_args():
@@ -86,6 +95,11 @@ def parse_args():
                         type=str, default=None,
                         help = 'Allele used for prediction')
 
+    parser.add_argument('-o', '--output',
+                        type=str, default=None,
+                        help=('Path to output file, if None, ' +
+                              'output is written to stdout'))
+
     args = parser.parse_args()
     return vars(args)
 
@@ -96,7 +110,8 @@ def main():
     '''
 
     opts = parse_args()
-    predict(opts['model'], opts['weights'], opts['peptides'], opts['allele'])
+    predict(opts['model'], opts['weights'],
+            opts['peptides'], opts['allele'], opts['output'])
 
 
 if __name__ == '__main__':
