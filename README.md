@@ -67,3 +67,25 @@ Finally, if you want to know how well your model is doing, you can evaluate it l
 ```bash
 python scripts/evaluate.py -a HLA-A0201 -s test/HLA-A0201.h5 -d data/production/curated_training_data.csv
 ```
+
+### Installation ###
+
+You can use `pip` to install MHCnuggets:
+
+```bash
+pip install mhcnuggets
+```
+
+MHCnuggets depends on several other packages and these should be
+automatically installed by `pip` if they are not already installed
+
+**Required pacakges:**
+
+* numpy
+* scipy
+* scikit-learn
+* tensorflow
+* keras
+
+You might want to check if the Keras backend is configured to use
+the Tensforflow backend
