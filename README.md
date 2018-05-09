@@ -12,6 +12,9 @@ Prediction is pretty easy and can be done like so
 ```bash
 python scripts/predict.py -a HLA-A0201 -p data/test/test_peptides.peps
 ```
+You can use the `-o` flag to specify an output path, otherwise the output
+is written to `stdout`
+
 
 ### Training ###
 If you'd like to get fancy and train your own models on your own
