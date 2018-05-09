@@ -8,7 +8,7 @@ from dataset import Dataset
 import cPickle as pickle
 import operator
 import os
-MHCNUGGETS_HOME = "/mnt/disk005/data/pipelines/modules/Proteomics/internal/mhcnuggets-public/mhcIInuggets"
+MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
 
 
 def exact_match(mhc, alleles):

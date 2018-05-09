@@ -16,7 +16,7 @@ import argparse
 from find_closest_allele import closest_allele
 import os
 import sys
-MHCNUGGETS_HOME = "/mnt/disk005/data/pipelines/modules/Proteomics/internal/mhcnuggets-public/mhcIInuggets"
+MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
 
 
 def predict(model, weights_path, peptides_path, mhc, output):
