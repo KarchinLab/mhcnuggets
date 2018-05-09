@@ -70,14 +70,8 @@ python scripts/evaluate.py -a HLA-A0201 -s test/HLA-A0201.h5 -d data/production/
 
 ### Installation ###
 
-You can use `pip` to install MHCnuggets:
-
-```bash
-pip install mhcnuggets
-```
-
-MHCnuggets depends on several other packages and these should be
-automatically installed by `pip` if they are not already installed
+A `pip` installable version of MHCnuggets is still under construction.
+We should have it up soon, stay tuned!
 
 **Required pacakges:**
 
@@ -88,4 +82,4 @@ automatically installed by `pip` if they are not already installed
 * keras
 
 You might want to check if the Keras backend is configured to use
-the Tensforflow backend
+the Tensforflow backend.
