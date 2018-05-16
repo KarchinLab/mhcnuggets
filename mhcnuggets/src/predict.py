@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from mhcnuggets.src.dataset import Dataset, mask_peptides, cut_pad_peptides
-from mhcnuggets.src.dataset import tensorize_keras
+from mhcnuggets.src.dataset import tensorize_keras, map_proba_to_ic50
 from keras.optimizers import Adam
 import argparse
 from mhcnuggets.src.find_closest_mhcI import closest_allele as closest_mhcI
@@ -40,12 +40,12 @@ def predict(model, class_, weights_path, peptides_path, mhc, output):
 
     # apply cut/pad or mask to same length
     if 'lstm' in model or 'gru' in model:
-        normed_peptides = dataset.mask_peptides(peptides, max_len=mask_len)
+        normed_peptides = mask_peptides(peptides, max_len=mask_len)
     else:
-        normed_peptides = dataset.cut_pad_peptides(peptides)
+        normed_peptides = cut_pad_peptides(peptides)
 
     # get tensorized values for prediction
-    peptides_tensor = dataset.tensorize_keras(normed_peptides, embed_type='softhot')
+    peptides_tensor = tensorize_keras(normed_peptides, embed_type='softhot')
 
     # make model
     print('Building model')
@@ -70,7 +70,7 @@ def predict(model, class_, weights_path, peptides_path, mhc, output):
 
     # test model
     preds_continuous, preds_binary = get_predictions(peptides_tensor, model)
-    ic50s = [dataset.map_proba_to_ic50(p[0]) for p in preds_continuous]
+    ic50s = [map_proba_to_ic50(p[0]) for p in preds_continuous]
 
     # write out results
     if output:
@@ -95,6 +95,10 @@ def parse_args():
                         type=str, default='lstm',
                         help=('Type of MHCnuggets model used to predict' +
                               'options are just lstm for now'))
+
+    parser.add_argument('-c', '--class',
+                        type=str, required=True,
+                        help='MHC class - options are I or II')
 
     parser.add_argument('-w', '--weights',
                         type=str, default=None,
@@ -124,7 +128,7 @@ def main():
     '''
 
     opts = parse_args()
-    predict(opts['model'], opts['weights'],
+    predict(opts['model'], opts['class'], opts['weights'],
             opts['peptides'], opts['allele'], opts['output'])
 
 
