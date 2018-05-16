@@ -1,0 +1,5 @@
+include mhcnuggets/data/production/mhcI/*
+include mhcnuggets/data/production/mhcII/*
+include mhcnuggets/data/test/*
+include mhcnuggets/saves/production/*
+include mhcnuggets/saves/test/*
