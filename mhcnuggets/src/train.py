@@ -11,8 +11,7 @@ from __future__ import print_function
 from mhcnuggets.src.dataset import Dataset
 import numpy as np
 import os
-from mhcnuggets.src.models import get_predictions
-import models
+from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
 from scipy.stats import kendalltau
@@ -41,9 +40,15 @@ def train(mhc, data, model, class_, model_path, lr, n_epoch, transfer_path):
                                   peptide_column_name='peptide',
                                   affinity_column_name='IC50(nM)')
 
+    # set the length
+    if class_.upper() == 'I':
+        mask_len = MHCI_MASK_LEN
+    elif class_.upper() == 'II':
+        mask_len = MHCII_MASK_LEN
+
     # apply cut/pad or mask to same length
-    if 'lstm' in model or 'gru' in model or 'attn' in model or 'vis' in model:
-        train_data.mask_peptides()
+    if 'lstm' in model or 'gru' in model or 'attn' in model:
+        train_data.mask_peptides(max_len=mask_len)
     else:
         train_data.cut_pad_peptides()
 
@@ -53,10 +58,8 @@ def train(mhc, data, model, class_, model_path, lr, n_epoch, transfer_path):
     print('Training on %d peptides' % len(mhc_train.peptides))
 
     # define model
-    if model == 'lstm' and class_.upper() == 'I':
-        model = models.mhcnuggets_lstm(input_size=(MHCI_MASK_LEN, NUM_AAS))
-    elif model == 'lstm' and class_.upper() == 'II':
-        model = models.mhcnuggets_lstm(input_size=(MHCI_MASK_LEN, NUM_AAS))
+    if model == 'lstm':
+        model = mhcnuggets_lstm(input_size=(mask_len, NUM_AAS))
 
     # check if we need to do transfer learning
     if transfer_path:
