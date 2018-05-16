@@ -72,7 +72,7 @@ def mask_peptides(peptides, pad_aa='Z', max_len=MAX_MASK_LEN,
     for i, peptide in enumerate(peptides):
 
         if len(peptide) > max_len:
-            print('Skipping ' + peptide + ' > 15 residues')
+            print('Skipping ' + peptide + ' > ' + str(max_len) + ' residues')
             continue
         # determine and apply padding
         num_pad = max_len - len(peptide)
@@ -268,7 +268,6 @@ class Dataset():
 
             num_total += 1
             if len(peptide) > max_len:
-                #print('Skipping ' + peptide + ' > 15 residues')
                 num_skipped += 1
                 continue
 
@@ -290,7 +289,7 @@ class Dataset():
         self.binary_targets = b_affinities
         self.alleles = alleles
         self.affinities = affinities
-        print("Number of peptides skipped/total due to length", num_skipped, num_total)
+        print("Number of peptides skipped/total due to length", num_skipped, '/', num_total)
 
 
     def tensorize_keras(self, embed_type='softhot'):
