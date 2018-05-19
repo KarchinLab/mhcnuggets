@@ -21,7 +21,8 @@ from mhcnuggets.src.aa_embeddings import NUM_AAS
 from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def train(mhc, data, model, class_, model_path, lr, n_epoch, transfer_path):
+def train(class_, data, mhc, save_path, n_epoch,
+          model='lstm', lr=0.001, transfer_path=None):
     '''
     Training protocol
     '''
@@ -31,7 +32,7 @@ def train(mhc, data, model, class_, model_path, lr, n_epoch, transfer_path):
 
     # print out options
     print('Training\nMHC: %s\nData: %s\nModel: %s\nSave path: %s\nTransfer: %s' %
-          (mhc, data, model, model_path, transfer_path))
+          (mhc, data, model, save_path, transfer_path))
 
     # load training
     train_data = Dataset.from_csv(filename=data,
@@ -92,7 +93,7 @@ def train(mhc, data, model, class_, model_path, lr, n_epoch, transfer_path):
 
             highest_f1 = train_f1
             best_epoch = epoch
-            model.save_weights(model_path)
+            model.save_weights(save_path)
 
     print('Done!')
 
@@ -151,9 +152,10 @@ def main():
     '''
 
     opts = parse_args()
-    train(opts['allele'], opts['data'], opts['model'],
-          opts['class'], opts['save_path'],
-          opts['learning_rate'], opts['num_epoch'], opts['transfer_weights'])
+    train(mhc=opts['allele'], data=opts['data'], model=opts['model'],
+          class_=opts['class'], save_path=opts['save_path'],
+          lr=opts['learning_rate'],
+          n_epoch=opts['num_epoch'], transfer_path=opts['transfer_weights'])
 
 
 if __name__ == '__main__':

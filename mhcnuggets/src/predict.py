@@ -22,7 +22,8 @@ from mhcnuggets.src.aa_embeddings import NUM_AAS
 from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def predict(model, class_, weights_path, peptides_path, mhc, output):
+def predict(class_, peptides_path, mhc,
+            model='lstm', weights_path=None, output=None):
     '''
     Prediction protocol
     '''
@@ -128,8 +129,10 @@ def main():
     '''
 
     opts = parse_args()
-    predict(opts['model'], opts['class'], opts['weights'],
-            opts['peptides'], opts['allele'], opts['output'])
+    predict(model=opts['model'], class_=opts['class'],
+            weights_path=opts['weights'],
+            peptides_path=opts['peptides'],
+            mhc=opts['allele'], output=opts['output'])
 
 
 if __name__ == '__main__':
