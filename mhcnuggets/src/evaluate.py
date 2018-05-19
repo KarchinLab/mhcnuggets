@@ -21,7 +21,7 @@ from mhcnuggets.src.aa_embeddings import NUM_AAS
 from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def test(mhc, data, model, class_, model_path):
+def test(class_, data, mhc, model_path, model='lstm'):
     '''
     Evaluation protocol
     '''
@@ -113,8 +113,9 @@ def main():
     '''
 
     opts = parse_args()
-    test(opts['allele'], opts['data'], opts['model'], opts['class'],
-         opts['save_path'])
+    test(mhc=opts['allele'], data=opts['data'],
+         model=opts['model'], class_=opts['class'],
+         save_path=opts['save_path'])
 
 
 if __name__ == '__main__':
