@@ -8,19 +8,20 @@ rohit.bhattachar@gmail.com
 
 # imports
 from __future__ import print_function
-from dataset import Dataset
+from mhcnuggets.src.dataset import Dataset
 import numpy as np
 import os
-from models import get_predictions
-import models
+from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
 from scipy.stats import kendalltau
 from keras.optimizers import Adam
 import argparse
+from mhcnuggets.src.aa_embeddings import NUM_AAS
+from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def test(mhc, data, model, model_path):
+def test(class_, data, mhc, model_path, model='lstm'):
     '''
     Evaluation protocol
     '''
@@ -36,9 +37,15 @@ def test(mhc, data, model, model_path):
                                  peptide_column_name='peptide',
                                  affinity_column_name='IC50(nM)')
 
+    # set the length
+    if class_.upper() == 'I':
+        mask_len = MHCI_MASK_LEN
+    elif class_.upper() == 'II':
+        mask_len = MHCII_MASK_LEN
+
     # apply cut/pad or mask to same length
     if 'lstm' in model or 'gru' in model or 'attn' in model:
-        test_data.mask_peptides()
+        test_data.mask_peptides(max_len=mask_len)
     else:
         test_data.cut_pad_peptides()
 
@@ -47,7 +54,7 @@ def test(mhc, data, model, model_path):
 
     # define model
     if model == 'lstm':
-        model = models.mhcnuggets_lstm()
+        model = mhcnuggets_lstm(input_size=(mask_len, NUM_AAS))
 
     # compile model
     model.load_weights(model_path)
@@ -88,6 +95,10 @@ def parse_args():
                         help=('Type of MHCnuggets model to evaluate' +
                               'options are just lstm for now'))
 
+    parser.add_argument('-c', '--class',
+                        type=str, required=True,
+                        help='MHC class - options are I or II')
+
     parser.add_argument('-s', '--save_path',
                         type=str, required=True,
                         help=('Path to which the model weights are saved'))
@@ -102,7 +113,9 @@ def main():
     '''
 
     opts = parse_args()
-    test(opts['allele'], opts['data'], opts['model'], opts['save_path'])
+    test(mhc=opts['allele'], data=opts['data'],
+         model=opts['model'], class_=opts['class'],
+         save_path=opts['save_path'])
 
 
 if __name__ == '__main__':

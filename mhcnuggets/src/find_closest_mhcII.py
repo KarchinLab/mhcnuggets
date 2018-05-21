@@ -4,7 +4,7 @@ what the closest allele to another
 one is based on training data
 """
 
-from dataset import Dataset
+from mhcnuggets.src.dataset import Dataset
 import cPickle as pickle
 import operator
 import os
@@ -30,6 +30,7 @@ def closest_allele(mhc):
     examples_per_allele = pickle.load(open(os.path.join(MHCNUGGETS_HOME,
                                                         "data",
                                                         "production",
+                                                        "mhcII",
                                                         "examples_per_allele.pkl"), 'rb'))
     alleles = sorted(examples_per_allele)
     match = exact_match(mhc, alleles)

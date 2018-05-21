@@ -8,6 +8,12 @@ rohit.bhattachar@gmail.com
 from __future__ import print_function
 import numpy as np
 
+# constants
+NUM_AAS = 21
+MHCI_MASK_LEN = 15
+MHCII_MASK_LEN = 30
+MAX_MASK_LEN = 30
+
 MASK_VALUE = -4200000
 AA_LIST = list('ACDEFGHIKLMNPQRSTVWYX')
 CAN_AA_LIST = list('ACDEFGHIKLMNPQRSTVWY')

@@ -8,45 +8,60 @@ rohit.bhattachar@gmail.com
 
 from __future__ import print_function
 import numpy as np
-from models import get_predictions
-import models
-import dataset
+from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
+from mhcnuggets.src.dataset import Dataset, mask_peptides, cut_pad_peptides
+from mhcnuggets.src.dataset import tensorize_keras, map_proba_to_ic50
 from keras.optimizers import Adam
 import argparse
-from find_closest_allele import closest_allele
+from mhcnuggets.src.find_closest_mhcI import closest_allele as closest_mhcI
+from mhcnuggets.src.find_closest_mhcII import closest_allele as closest_mhcII
 import os
 import sys
 MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
+from mhcnuggets.src.aa_embeddings import NUM_AAS
+from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def predict(model, weights_path, peptides_path, mhc, output):
+def predict(class_, peptides_path, mhc,
+            model='lstm', weights_path=None, output=None):
     '''
-    Training protocol
+    Prediction protocol
     '''
 
     # read peptides
     peptides = [p.strip() for p in open(peptides_path)]
 
+    # set the length
+    if class_.upper() == 'I':
+        mask_len = MHCI_MASK_LEN
+    elif class_.upper() == 'II':
+        mask_len = MHCII_MASK_LEN
+
     print('Predicting for %d peptides' % (len(peptides)))
+
     # apply cut/pad or mask to same length
     if 'lstm' in model or 'gru' in model:
-        normed_peptides = dataset.mask_peptides(peptides)
+        normed_peptides = mask_peptides(peptides, max_len=mask_len)
     else:
-        normed_peptides = dataset.cut_pad_peptides(peptides)
+        normed_peptides = cut_pad_peptides(peptides)
 
     # get tensorized values for prediction
-    peptides_tensor = dataset.tensorize_keras(normed_peptides, embed_type='softhot')
+    peptides_tensor = tensorize_keras(normed_peptides, embed_type='softhot')
 
     # make model
     print('Building model')
     # define model
     if model == 'lstm':
-        model = models.mhcnuggets_lstm()
+        model = mhcnuggets_lstm(input_size=(mask_len, NUM_AAS))
 
     if weights_path:
         model.load_weights(weights_path)
     else:
-        predictor_mhc = closest_allele(mhc)
+        if class_.upper() == 'I':
+            predictor_mhc = closest_mhcI(mhc)
+        elif class_.upper() == 'II':
+            predictor_mhc = closest_mhcII(mhc)
+
         print("Closest allele found", predictor_mhc)
         model.load_weights(os.path.join(MHCNUGGETS_HOME, "saves",
                                         "production",
@@ -56,7 +71,7 @@ def predict(model, weights_path, peptides_path, mhc, output):
 
     # test model
     preds_continuous, preds_binary = get_predictions(peptides_tensor, model)
-    ic50s = [dataset.map_proba_to_ic50(p[0]) for p in preds_continuous]
+    ic50s = [map_proba_to_ic50(p[0]) for p in preds_continuous]
 
     # write out results
     if output:
@@ -81,6 +96,10 @@ def parse_args():
                         type=str, default='lstm',
                         help=('Type of MHCnuggets model used to predict' +
                               'options are just lstm for now'))
+
+    parser.add_argument('-c', '--class',
+                        type=str, required=True,
+                        help='MHC class - options are I or II')
 
     parser.add_argument('-w', '--weights',
                         type=str, default=None,
@@ -110,8 +129,10 @@ def main():
     '''
 
     opts = parse_args()
-    predict(opts['model'], opts['weights'],
-            opts['peptides'], opts['allele'], opts['output'])
+    predict(model=opts['model'], class_=opts['class'],
+            weights_path=opts['weights'],
+            peptides_path=opts['peptides'],
+            mhc=opts['allele'], output=opts['output'])
 
 
 if __name__ == '__main__':

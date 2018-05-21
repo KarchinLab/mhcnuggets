@@ -15,16 +15,14 @@ from keras.layers.recurrent import LSTM, GRU
 import math
 from keras.layers import Input
 from keras.layers import Conv1D, GlobalMaxPooling1D
-from aa_embeddings import MASK_VALUE
+from mhcnuggets.src.aa_embeddings import MASK_VALUE
+from mhcnuggets.src.aa_embeddings import NUM_AAS, MAX_MASK_LEN
 from keras.layers import dot, concatenate
 import keras.backend as K
 
 # constants
 IC50_THRESHOLD = 500
 MAX_IC50 = 50000
-MAX_CUT_LEN = 9
-MAX_MASK_LEN = 15
-NUM_AAS = 21
 
 
 def get_predictions(test_peptides, model, binary=False, embed_peptides=None):

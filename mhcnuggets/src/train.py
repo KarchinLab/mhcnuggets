@@ -8,26 +8,31 @@ rohit.bhattachar@gmail.com
 
 # imports
 from __future__ import print_function
-from dataset import Dataset
+from mhcnuggets.src.dataset import Dataset
 import numpy as np
 import os
-from models import get_predictions
-import models
+from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
 from scipy.stats import kendalltau
 from keras.optimizers import Adam
 import argparse
+from mhcnuggets.src.aa_embeddings import NUM_AAS
+from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 
 
-def train(mhc, data, model, model_path, lr, n_epoch, transfer_path):
+def train(class_, data, mhc, save_path, n_epoch,
+          model='lstm', lr=0.001, transfer_path=None):
     '''
     Training protocol
     '''
 
+    # store model name
+    model_name = model
+
     # print out options
     print('Training\nMHC: %s\nData: %s\nModel: %s\nSave path: %s\nTransfer: %s' %
-          (mhc, data, model, model_path, transfer_path))
+          (mhc, data, model, save_path, transfer_path))
 
     # load training
     train_data = Dataset.from_csv(filename=data,
@@ -36,9 +41,15 @@ def train(mhc, data, model, model_path, lr, n_epoch, transfer_path):
                                   peptide_column_name='peptide',
                                   affinity_column_name='IC50(nM)')
 
+    # set the length
+    if class_.upper() == 'I':
+        mask_len = MHCI_MASK_LEN
+    elif class_.upper() == 'II':
+        mask_len = MHCII_MASK_LEN
+
     # apply cut/pad or mask to same length
-    if 'lstm' in model or 'gru' in model:
-        train_data.mask_peptides()
+    if 'lstm' in model or 'gru' in model or 'attn' in model:
+        train_data.mask_peptides(max_len=mask_len)
     else:
         train_data.cut_pad_peptides()
 
@@ -49,7 +60,7 @@ def train(mhc, data, model, model_path, lr, n_epoch, transfer_path):
 
     # define model
     if model == 'lstm':
-        model = models.mhcnuggets_lstm()
+        model = mhcnuggets_lstm(input_size=(mask_len, NUM_AAS))
 
     # check if we need to do transfer learning
     if transfer_path:
@@ -82,7 +93,7 @@ def train(mhc, data, model, model_path, lr, n_epoch, transfer_path):
 
             highest_f1 = train_f1
             best_epoch = epoch
-            model.save_weights(model_path)
+            model.save_weights(save_path)
 
     print('Done!')
 
@@ -108,7 +119,11 @@ def parse_args():
     parser.add_argument('-m', '--model',
                         type=str, default='lstm',
                         help=('Type of MHCnuggets model to train' +
-                              'options are just "lstm" for now'))
+                              'options are just lstm for now'))
+
+    parser.add_argument('-c', '--class',
+                        type=str, required=True,
+                        help='MHC class - options are I or II')
 
     parser.add_argument('-s', '--save_path',
                         type=str, required=True,
@@ -137,8 +152,10 @@ def main():
     '''
 
     opts = parse_args()
-    train(opts['allele'], opts['data'], opts['model'], opts['save_path'],
-          opts['learning_rate'], opts['num_epoch'], opts['transfer_weights'])
+    train(mhc=opts['allele'], data=opts['data'], model=opts['model'],
+          class_=opts['class'], save_path=opts['save_path'],
+          lr=opts['learning_rate'],
+          n_epoch=opts['num_epoch'], transfer_path=opts['transfer_weights'])
 
 
 if __name__ == '__main__':
