@@ -5,7 +5,10 @@ one is based on training data
 """
 
 from mhcnuggets.src.dataset import Dataset
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import operator
 import os
 MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
