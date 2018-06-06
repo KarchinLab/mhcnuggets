@@ -5,7 +5,10 @@ one is based on training data
 """
 
 from mhcnuggets.src.dataset import Dataset
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import operator
 import os
 MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
@@ -49,7 +52,7 @@ def closest_allele(mhc):
         _sub_type = int(mhc[10:12])
 
     except ValueError as e:
-        print "Invalid human allele"
+        print("Invalid human allele")
         return
 
     # find if there's a supertype, and select
@@ -99,7 +102,7 @@ def main():
     sorted_alleles = sorted(allele_example_dict.items(),
                             key=operator.itemgetter(1))
     for a in sorted_alleles:
-        print a
+        print(a)
     pickle.dump(allele_example_dict, open("data/production/examples_per_allele.pkl", 'wb'))
 
 if __name__ == "__main__":
