@@ -54,7 +54,6 @@ def closest_allele(mhc):
         #_super_type = int(mhc[5:7])
         #_sub_type = int(mhc[7:9])
         _super_type, _sub_type = mhc[5:].split(':')
-        _super_type, sub_type = int(_super_type), int(sub_type)
 
     except ValueError as e:
         print("Invalid human allele")
@@ -66,7 +65,6 @@ def closest_allele(mhc):
         try:
             gene = allele[4]
             super_type, sub_type = mhc[5:].split(':')
-            super_type, sub_type = int(super_type), int(sub_type)
 
         except:
             continue
@@ -103,10 +101,7 @@ def main():
         trained_alleles.append(trained_models.split('.')[0])
 
     allele_example_dict = {}
-    print(sorted(set(train_data.alleles)))
-    print(sorted(trained_alleles))
 
-    '''
     for allele in sorted(trained_alleles):
         n_training = len(train_data.get_allele(allele).peptides)
         allele_example_dict[allele] = n_training
@@ -117,7 +112,7 @@ def main():
     for a in sorted_alleles:
         print(a)
     pickle.dump(allele_example_dict, open("data/production/mhcI/examples_per_allele.pkl", 'wb'))
-    '''
+
 
 
 if __name__ == "__main__":

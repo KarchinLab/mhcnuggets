@@ -51,13 +51,11 @@ def closest_allele(mhc):
     # get gene/supertype/subtype of allele
     try:
         split_mhc = mhc.split('-')
-        if len(split_mhc == 3):
-            mhc = split_mhc[0] + split_mhc[1]
-
+        mhc = split_mhc[0] + split_mhc[1]
         _gene = mhc[4:8]
         #_super_type = int(mhc[8:10])
         #_sub_type = int(mhc[10:12])
-        _super_type, sub_type = 
+        _super_type, sub_type = mhc[8:].split(':')
 
     except ValueError as e:
         print("Invalid human allele")
@@ -67,9 +65,11 @@ def closest_allele(mhc):
     # the one with the max training examples
     for allele in alleles:
         try:
-            gene, super_type, sub_type = (allele[4:8],
-                                          int(allele[8:10]),
-                                          int(allele[10:12]))
+            split_mhc = mhc.split('-')
+            mhc = split_mhc[0] + split_mhc[1]
+            gene = allele[4:8]
+            super_type, sub_type = mhc[8:].split(':')
+
         except:
             continue
 
@@ -83,26 +83,26 @@ def closest_allele(mhc):
     # otherwise choose gene level
     if closest_mhc == "":
         if 'DQA' in mhc:
-            closest_mhc = 'HLA-DQA10501-DQB10201'
+            closest_mhc = 'HLA-DQA105:01-DQB102:01'
         else:
-            closest_mhc = 'HLA-DRB10101'
+            closest_mhc = 'HLA-DRB101:01'
 
     return closest_mhc
 
 
 
 def main():
-    train_data = Dataset.from_csv(filename='data/production/mhcII.csv',
+    train_data = Dataset.from_csv(filename='data/production/mhcII/curated_training_data.csv',
                                   sep=',',
                                   allele_column_name='mhc',
                                   peptide_column_name='peptide',
                                   affinity_column_name='IC50(nM)')
 
     trained_alleles = []
-    for trained_models in os.listdir('saves/production/mhcnuggets_beta'):
+    for trained_models in os.listdir('saves/production/'):
         trained_alleles.append(trained_models.split('.')[0])
     allele_example_dict = {}
-    #for allele in sorted(set(train_data.alleles)):
+
     for allele in sorted(trained_alleles):
         n_training = len(train_data.get_allele(allele).peptides)
         allele_example_dict[allele] = n_training
@@ -111,7 +111,8 @@ def main():
                             key=operator.itemgetter(1))
     for a in sorted_alleles:
         print(a)
-    pickle.dump(allele_example_dict, open("data/production/examples_per_allele.pkl", 'wb'))
+    pickle.dump(allele_example_dict, open("data/production/mhcII/examples_per_allele.pkl", 'wb'))
+
 
 if __name__ == "__main__":
     main()
