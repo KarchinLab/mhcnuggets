@@ -2,6 +2,9 @@
 Script that determines
 what the closest allele to another
 one is based on training data
+
+Rohit Bhattacharya
+rohit.bhattachar@gmail.com
 """
 
 from mhcnuggets.src.dataset import Dataset
@@ -51,6 +54,7 @@ def closest_allele(mhc):
         #_super_type = int(mhc[5:7])
         #_sub_type = int(mhc[7:9])
         _super_type, _sub_type = mhc[5:].split(':')
+        _super_type, sub_type = int(_super_type), int(sub_type)
 
     except ValueError as e:
         print("Invalid human allele")
@@ -62,6 +66,7 @@ def closest_allele(mhc):
         try:
             gene = allele[4]
             super_type, sub_type = mhc[5:].split(':')
+            super_type, sub_type = int(super_type), int(sub_type)
 
         except:
             continue
@@ -75,18 +80,18 @@ def closest_allele(mhc):
     # otherwise choose gene level
     if closest_mhc == "":
         if _gene == 'A':
-            closest_mhc = 'HLA-A0201'
+            closest_mhc = 'HLA-A02:01'
         elif _gene == 'B':
-            closest_mhc = 'HLA-B0702'
+            closest_mhc = 'HLA-B07:02'
         elif _gene == 'C':
-            closest_mhc = 'HLA-C0401'
+            closest_mhc = 'HLA-C04:01'
 
     return closest_mhc
 
 
 
 def main():
-    train_data = Dataset.from_csv(filename='data/production/curated_training_data.csv',
+    train_data = Dataset.from_csv(filename='data/production/mhcI/curated_training_data.csv',
                                   sep=',',
                                   allele_column_name='mhc',
                                   peptide_column_name='peptide',
@@ -98,7 +103,10 @@ def main():
         trained_alleles.append(trained_models.split('.')[0])
 
     allele_example_dict = {}
-    #for allele in sorted(set(train_data.alleles)):
+    print(sorted(set(train_data.alleles)))
+    print(sorted(trained_alleles))
+
+    '''
     for allele in sorted(trained_alleles):
         n_training = len(train_data.get_allele(allele).peptides)
         allele_example_dict[allele] = n_training
@@ -108,7 +116,8 @@ def main():
 
     for a in sorted_alleles:
         print(a)
-    pickle.dump(allele_example_dict, open("data/production/examples_per_allele.pkl", 'wb'))
+    pickle.dump(allele_example_dict, open("data/production/mhcI/examples_per_allele.pkl", 'wb'))
+    '''
 
 
 if __name__ == "__main__":

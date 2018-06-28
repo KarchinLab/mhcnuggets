@@ -2,6 +2,9 @@
 Script that determines
 what the closest allele to another
 one is based on training data
+
+Rohit Bhattacharya
+rohit.bhattachar@gmail.com
 """
 
 from mhcnuggets.src.dataset import Dataset
@@ -47,9 +50,14 @@ def closest_allele(mhc):
 
     # get gene/supertype/subtype of allele
     try:
+        split_mhc = mhc.split('-')
+        if len(split_mhc == 3):
+            mhc = split_mhc[0] + split_mhc[1]
+
         _gene = mhc[4:8]
-        _super_type = int(mhc[8:10])
-        _sub_type = int(mhc[10:12])
+        #_super_type = int(mhc[8:10])
+        #_sub_type = int(mhc[10:12])
+        _super_type, sub_type = 
 
     except ValueError as e:
         print("Invalid human allele")
