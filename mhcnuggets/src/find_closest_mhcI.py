@@ -48,8 +48,9 @@ def closest_allele(mhc):
     # get super gene/supertype/subtype of allele
     try:
         _gene = mhc[4]
-        _super_type = int(mhc[5:7])
-        _sub_type = int(mhc[7:9])
+        #_super_type = int(mhc[5:7])
+        #_sub_type = int(mhc[7:9])
+        _super_type, _sub_type = mhc[5:].split(':')
 
     except ValueError as e:
         print("Invalid human allele")
@@ -59,9 +60,9 @@ def closest_allele(mhc):
     # the one with the max training examples
     for allele in alleles:
         try:
-            gene, super_type, sub_type = (allele[4],
-                                          int(allele[5:7]),
-                                          int(allele[7:9]))
+            gene = allele[4]
+            super_type, sub_type = mhc[5:].split(':')
+
         except:
             continue
 

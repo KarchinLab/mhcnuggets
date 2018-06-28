@@ -30,7 +30,6 @@ def standardize_mhc(mhc):
     """
 
     mhc = mhc.replace('*', '')
-    mhc = mhc.replace(':', '')
     return mhc
 
 
