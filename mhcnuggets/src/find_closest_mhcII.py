@@ -44,7 +44,10 @@ def shorten_allele_dict_names(examples_per_allele):
             shortened_allele = 'HLA-' + allele.split('-')[2]
         else:
             shortened_allele = allele
-        shortened_dict[shortened_allele] = examples_per_allele[allele]
+        if (shortened_allele not in shortened_dict or
+        (shortened_allele in shortened_dict and
+         examples_per_allele[allele] > shortened_dict[shortened_allele])):
+            shortened_dict[shortened_allele] = examples_per_allele[allele]
     return shortened_dict
 
 def create_short_to_full_dict(examples_per_allele):
