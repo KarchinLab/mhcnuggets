@@ -1,7 +1,8 @@
 include mhcnuggets/data/production/mhcI/*
 include mhcnuggets/data/production/mhcII/*
+include mhcnuggets/data/production/*
 include mhcnuggets/data/test/*
 include mhcnuggets/saves/production/*
 include mhcnuggets/saves/test/*
-include README.md
-include user_guide.ipynb
+include mhcnuggets/README.md
+include mhcnuggets/user_guide.ipynb

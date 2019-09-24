@@ -9,19 +9,20 @@ rohit.bhattachar@gmail.com
 from __future__ import print_function
 import math
 import os
+import string
 from sklearn.model_selection import train_test_split
 from mhcnuggets.src.aa_embeddings import AA_ONEHOT
 from mhcnuggets.src.aa_embeddings import AA_SOFTHOT
 from mhcnuggets.src.aa_embeddings import AA_VOCAB
 from mhcnuggets.src.aa_embeddings import AA_INV_VOCAB
 from mhcnuggets.src.aa_embeddings import MASK_VALUE
+from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN
+from mhcnuggets.src.aa_embeddings import MHCII_MASK_LEN
+
 import numpy as np
 
-IC50_THRESHOLD = 500
-MAX_IC50 = 50000
 NUM_AAS = 21
 MAX_CORE_LEN = 9
-MAX_MASK_LEN = 15
 
 
 def standardize_mhc(mhc):
@@ -33,86 +34,80 @@ def standardize_mhc(mhc):
     return mhc
 
 
-def map_ic50_for_regression(ic50):
+def map_ic50_for_regression(ic50, max_ic50):
     """
     Map the IC50 between 0 or 1
     """
 
-    if ic50 > MAX_IC50:
-        ic50 = MAX_IC50
-    return 1-math.log(ic50, MAX_IC50)
+    if ic50 > max_ic50:
+        ic50 = max_ic50
+    return 1-math.log(ic50, max_ic50)
 
 
-def map_proba_to_ic50(proba):
+def map_proba_to_ic50(proba, max_ic50):
     """
     Map score outputs from the models to IC50s
     """
 
-    return MAX_IC50 ** (1-proba)
+    return max_ic50 ** (1-proba)
 
 
-def binarize_ic50(ic50):
+def binarize_ic50(ic50, ic50_threshold):
     """
     Binarize ic50 based on a threshold
     """
 
-    if ic50 <= IC50_THRESHOLD:
+    if ic50 <= ic50_threshold:
         return 1
     return 0
 
-
-def mask_peptides(peptides, pad_aa='Z', max_len=MAX_MASK_LEN,
+def mask_peptides(peptides, max_len, pad_aa='Z', 
                   pre_pad=True):
     """
-    Mask and pad for an LSTM
+    Mask and pad for an LSTM (can be used without calling from instance of Dataset)
     """
+    num_skipped = 0
+    num_total = 0
 
     padded_peptides = []
-    for i, peptide in enumerate(peptides):
+    original_peptides = []
+    
+    #for residues that we are not sure about and we don't have encoding for, we replace them with X
+    aa_replace={'J':'X','B':'X','U':'X'}
 
+    for peptide in peptides:
         if len(peptide) > max_len:
+            num_skipped += 1
             print('Skipping ' + peptide + ' > ' + str(max_len) + ' residues')
             continue
+        
+        peptide=peptide.upper()
         # determine and apply padding
+        original_peptides.append(peptide)  #keep track of the original and in register with the padded version
+
+        # clean up the peptides if there is residues that we don't have encoding for 
+        pep_list=list(peptide)
+        pep_clean_list=[aa_replace[p] if p in aa_replace else p for p in pep_list]
+        peptide=''.join(pep_clean_list)
+
         num_pad = max_len - len(peptide)
         if pre_pad:
             peptide += pad_aa * num_pad
         else:
             peptide = pad_aa * num_pad + peptide
-        padded_peptides.append(peptide)
-
-    return padded_peptides
-
-
-def cut_pad_peptides(peptides, max_len=MAX_CORE_LEN,
-                     padding_aa='X', padding_pos=6):
-    """
-    Cut and pad peptides to a desired max length
-    """
-
-    padded_peptides = []
-    for peptide in peptides:
-
-        # determine and apply padding
-        num_pad = max_len - len(peptide)
-        peptide = (peptide[0:padding_pos] + padding_aa*num_pad +
-                   peptide[padding_pos:])
-
-        # cut until length matches max_len
-        while len(peptide) > max_len:
-            peptide = peptide[0:padding_pos] + peptide[padding_pos+1:]
 
         padded_peptides.append(peptide)
 
-    return padded_peptides
+    print("Number of peptides skipped/total due to length", num_skipped, '/', num_total)
+    return padded_peptides, original_peptides
 
 
 def tensorize_keras(peptides, embed_type='softhot'):
     """
-    Tensorize the data
+    Tensorize the data when not called from Dataframe instance
     """
-
     encoded_peptides = []
+
     if embed_type == 'softhot':
         embedding = AA_SOFTHOT
     elif embed_type == 'onehot':
@@ -120,18 +115,20 @@ def tensorize_keras(peptides, embed_type='softhot'):
 
     # go through each peptide and embed
     for i, peptide in enumerate(peptides):
-
         # embed the peptide
         encoded_peptide = []
         for residue in peptide:
             encoded_peptide.append(embedding[residue])
         encoded_peptides.append(encoded_peptide)
 
-    # make numpy arrays for the input
+    # make numpy arrays for the encoded peptides
     encoded_peptides = np.array(encoded_peptides, dtype='float32')
 
     return encoded_peptides
 
+    
+    encoded_peptides = []
+    return encoded_peptides
 
 def get_validation_split(X, y, split=0.2):
     """
@@ -155,8 +152,8 @@ class Dataset():
     Dataset class
     """
 
-    def __init__(self, alleles, peptides, affinities,
-                 m_affinities, b_affinities):
+    def __init__(self,  alleles, peptides, affinities,
+                 m_affinities, b_affinities, m_types, m_sources):
         '''
         Constructor for Dataset
 
@@ -164,7 +161,9 @@ class Dataset():
         peptides : list of corresponding tested peptides
         affinities : IC50 nM affinity for pMHC pairs
         m_affinities : mapped IC50 between 0-1
-        b_affinities : binarized IC50 at fixed threshold (500 nM)
+        b_affinities : binarized IC50 at selected threshold (default 500 nM)
+        m_types  : list of measurement types
+        m_sources  : list of measurement sources
         '''
 
         self.alleles = alleles
@@ -172,22 +171,27 @@ class Dataset():
         self.affinities = affinities
         self.continuous_targets = m_affinities
         self.binary_targets = b_affinities
-
+        self.m_types = m_types
+        self.m_sources = m_sources
 
     @staticmethod
-    def from_csv(filename, sep, allele_column_name,
-                 peptide_column_name, affinity_column_name):
+    def from_csv(filename, ic50_threshold, max_ic50, sep, allele_column_name,
+                 peptide_column_name, affinity_column_name, type_column_name, source_column_name):
         """
         Create a Dataset object from a csv file
         """
 
         in_file = open(filename)
-        header = in_file.readline().strip().split(sep)
+        raw_header = in_file.readline().strip()
+        header = ''.join(list(filter(lambda x: x in string.printable, raw_header))).split(sep)  #clean nasty invisible characters
         allele_ind = header.index(allele_column_name)
         peptide_ind = header.index(peptide_column_name)
         affinity_ind = header.index(affinity_column_name)
+        type_ind = header.index(type_column_name)
+        source_ind = header.index(source_column_name)
 
         alleles, peptides, affinities = [], [], []
+        m_sources, m_types = [], []
         m_affinities, b_affinities = [], []  # continuous and binary targets
 
         for line in in_file:
@@ -198,78 +202,85 @@ class Dataset():
             alleles.append(allele)
             peptides.append(line[peptide_ind])
             affinities.append(affinity)
-            m_affinities.append(map_ic50_for_regression(affinity))
-            b_affinities.append(binarize_ic50(affinity))
+            m_types.append(line[type_ind])
+            m_sources.append(line[source_ind])
+            m_affinities.append(map_ic50_for_regression(affinity, max_ic50))
+            b_affinities.append(binarize_ic50(affinity, ic50_threshold))
 
         in_file.close()
         return Dataset(alleles, peptides, affinities,
-                       m_affinities, b_affinities)
+                       m_affinities, b_affinities, m_types, m_sources)
 
 
-    def get_allele(self, allele, length=None):
+    def get_allele(self, allele, mass_spec,ic50_threshold, length=None):
         """
         Return a subset dataset containing info
         for a given allele
         """
 
         alleles, peptides, affinities = [], [], []
+        m_sources, m_types = [], []
         m_affinities, b_affinities = [], []
 
+        num_positives = 0
+        num_real_negatives = 0
+        num_random_negatives = 0 
+
         for i in range(len(self.alleles)):
-            if self.alleles[i] == allele and (length is None or length == len(self.peptides[i])):
+            if self.alleles[i] == allele and (length is None or length == len(self.peptides[i])) and \
+               self.m_sources[i] != 'random':
                 alleles.append(self.alleles[i])
                 peptides.append(self.peptides[i])
                 affinities.append(self.affinities[i])
                 m_affinities.append(self.continuous_targets[i])
                 b_affinities.append(self.binary_targets[i])
+                m_types.append(self.m_types[i])
+                m_sources.append(self.m_sources[i])
+
+        #get basic composition of the examples for the allele
+        np_affinities = np.array(affinities, dtype='float32')
+        np_sources = np.array(m_sources, dtype='object')
+        positives_idx = np.flatnonzero(np_affinities <= ic50_threshold)
+        random_negative_idx = np.where(np.logical_and(np_affinities > ic50_threshold, np_sources == 'random'))[0]
+        real_negative_idx = np.where(np.logical_and(np_affinities > ic50_threshold, np_sources != 'random'))[0]
+        
+        num_positives = len(positives_idx)
+        num_random_negatives = len(random_negative_idx)
+        num_real_negatives = len(real_negative_idx)
+
 
         return Dataset(alleles, peptides, affinities,
-                       m_affinities, b_affinities)
+                       m_affinities, b_affinities, m_types, m_sources), num_positives, num_random_negatives, num_real_negatives
 
 
-    def cut_pad_peptides(self, max_len=MAX_CORE_LEN,
-                         padding_aa='X', padding_pos=6):
-        """
-        Cut and pad peptides to a desired max length
-        """
-
-        padded_peptides = []
-        for peptide in self.peptides:
-
-            # determine and apply padding
-            num_pad = max_len - len(peptide)
-            peptide = (peptide[0:padding_pos] + padding_aa*num_pad +
-                       peptide[padding_pos:])
-
-            # cut until length matches max_len
-            while len(peptide) > max_len:
-                peptide = peptide[0:padding_pos] + peptide[padding_pos+1:]
-
-            padded_peptides.append(peptide)
-
-        self.peptides = padded_peptides
-
-
-    def mask_peptides(self, pad_aa='Z', max_len=MAX_MASK_LEN,
+    def mask_peptides(self, max_len, pad_aa='Z', 
                       pre_pad=True):
         """
         Mask and pad for an LSTM
         """
-
         padded_peptides = []
         m_affinities = []
         b_affinities = []
         affinities = []
         alleles = []
+        m_types = []
+        m_sources = []
         num_skipped = 0
         num_total = 0
+        
+        aa_replace={'J':'X','B':'X','U':'X'}
+
         for i, peptide in enumerate(self.peptides):
 
             num_total += 1
             if len(peptide) > max_len:
                 num_skipped += 1
                 continue
-
+            
+            peptide=peptide.upper()
+            pep_list=list(peptide)
+            pep_clean_list=[aa_replace[p] if p in aa_replace else p for p in pep_list]
+            peptide=''.join(pep_clean_list)
             # determine and apply padding
             num_pad = max_len - len(peptide)
             if pre_pad:
@@ -282,12 +293,16 @@ class Dataset():
             b_affinities.append(self.binary_targets[i])
             affinities.append(self.affinities[i])
             alleles.append(self.alleles[i])
-
+            m_types.append(self.m_types[i])
+            m_sources.append(self.m_sources[i])
+            
         self.peptides = padded_peptides
         self.continuous_targets = m_affinities
         self.binary_targets = b_affinities
         self.alleles = alleles
         self.affinities = affinities
+        self.m_types = m_types
+        self.m_sources = m_sources
         print("Number of peptides skipped/total due to length", num_skipped, '/', num_total)
 
 
@@ -317,29 +332,66 @@ class Dataset():
         binary_targets = np.array(self.binary_targets, dtype='int')
         return peptides, continuous_targets, binary_targets
 
+def parse_args():
+    '''
+    Parse user arguments
+    '''
 
+    info = 'Methods to create and manipulate the Dataset class'
+    parser = argparse.ArgumentParser(description=info)
+
+    parser.add_argument('-d', '--data',
+                        type=str, default=None,    #currently hardcoded in main function
+                        help='Path to data file')
+
+    parser.add_argument('-l', '--ic50_threshold',
+                        type=int, default=500,
+                        help='Threshold on ic50 (nM) that separates binder/non-binder')
+
+    parser.add_argument('-x', '--max_ic50',
+                        type=int, default=50000,
+                        help='Maximum ic50 value')
+
+
+    args = parser.parse_args()
+    return vars(args)
+
+    
 def main():
+
+    opts = parse_args()
+    datafile = opts['data']    #for future use
+    ic50_threshold = opts['ic50_threshold']
+    max_ic50 = opts['max_ic50']
+    
+
     """
     Test
     """
 
     train_data = Dataset.from_csv(filename='data/kim2014/train.csv',
-                                  sep=',',
+                                  sep=',', ic50_threshold=500,
+                                  max_ic50=50000,
                                   allele_column_name='mhc',
                                   peptide_column_name='peptide',
-                                  affinity_column_name='IC50(nM)')
+                                  affinity_column_name='IC50(nM)'
+                                  )
 
     test_data = Dataset.from_csv(filename='data/kim2014/test.csv',
-                                 sep=',',
+                                 sep=',', ic50_threshold=500,
+                                 max_ic50=50000,
                                  allele_column_name='mhc',
                                  peptide_column_name='peptide',
-                                 affinity_column_name='IC50(nM)')
+                                 affinity_column_name='IC50(nM)'
+                                 )
 
     production_data = Dataset.from_csv(filename='data/production/curated_training_data.csv',
-                                       sep=',',
+                                       sep=',', ic50_threshold=500,
+                                       max_ic50=50000,
                                        allele_column_name='mhc',
                                        peptide_column_name='peptide',
-                                       affinity_column_name='IC50(nM)')
+                                       affinity_column_name='IC50(nM)'
+                                       )
 
     '''
     print('Num train loaded:', len(train_data.alleles))
