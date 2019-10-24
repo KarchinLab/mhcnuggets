@@ -142,14 +142,15 @@ def parse_args():
                         help='Maximum ic50 value')
 
     parser.add_argument('-q', '--embed_peptides',
-                        type=bool, default=False,
+                        action='store_true', default=False,
                         help='Embedding of peptides used')
 
     parser.add_argument('-B', '--binary_predictions',
-                        type=bool, default=False,
+                        action='store_true', default=False,
                         help='Binary prediction')
 
-    parser.add_argument('-M', '--ba_models', default=False, type=bool,
+    parser.add_argument('-M', '--ba_models',
+                        action='store_true', default=False,
                         help='Use binding affinity trained models only instead of mass spec trained models')
 
     args = parser.parse_args()
