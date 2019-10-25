@@ -6,3 +6,4 @@ runs/*
 /dist/
 /mhcnuggets.egg-info/
 mhcnuggets/tests/*
+mount/output.txt
