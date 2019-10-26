@@ -1,3 +1,4 @@
+#Sample Docker Compose File
 version: '3'
 services: 
   mhcnuggets:
@@ -16,6 +17,6 @@ services:
         #- MHC_MASS_SPEC=false
         #- MHC_IC50_THRESHOLD=500
         #- MHC_MAX_IC50=50000
-        #- MHC_EMBED_PEPTIDES=TRUE
+        #- MHC_EMBED_PEPTIDES=false
         #- MHC_BINARY_PREDICTIONS=false
-        #- MHC_BA_MODELS=TRUE
+        #- MHC_BA_MODELS=false

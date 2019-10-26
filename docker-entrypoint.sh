@@ -5,6 +5,8 @@ set -e
 EMBED_PEPTIDES=$( echo "$MHC_EMBED_PEPTIDES" | tr '[:upper:]'  '[:lower:]' )
 BINARY_PREDICTIONS=$( echo "$MHC_BINARY_PREDICTIONS" | tr '[:upper:]'  '[:lower:]' )
 BA_MODELS=$( echo "$MHC_BA_MODELS" | tr '[:upper:]'  '[:lower:]' )
+
+#Setting filepath
 PEPTIDES_FILEPATH="/mhcnuggets/mount/$MHC_PEPTIDES_FILENAME"
 
 #Handling Environment Variable Defaults
@@ -21,11 +23,11 @@ if [[ $EMBED_PEPTIDES == "true" ]]; then EMBED_PEPTIDES="-q"; else EMBED_PEPTIDE
 if [[ $BINARY_PREDICTIONS == "true" ]]; then BINARY_PREDICTIONS="-B"; else BINARY_PREDICTIONS=""; fi
 if [[ $BA_MODELS == "true" ]]; then BA_MODELS="-M"; else MHC_BA_MODELS=""; fi
 
-#If using environment variables (based on if MHC_CLASS is set or not)
+#If using command line arguments (based on if MHC_CLASS is set or not)
 if [[ -z "$MHC_CLASS" ]]; then
   exec python /usr/local/lib/python3.7/site-packages/mhcnuggets/src/predict.py "$@"
 
-#Else, assuming that command line arguments are being used.
+#Else, assuming that environment variables are in use.
 else
   exec python /usr/local/lib/python3.7/site-packages/mhcnuggets/src/predict.py -c $MHC_CLASS -p $PEPTIDES_FILEPATH -a $MHC_ALLELE -m $MHC_MODEL -s $MHC_MODEL_WEIGHTS_PATH -k $MHC_PICKLE_PATH -e $MHC_MASS_SPEC -l $MHC_IC50_THRESHOLD -x $MHC_MAX_IC50 $EMBED_PEPTIDES $BINARY_PREDICTIONS $BA_MODELS $MHC_OUTPUT
 fi
