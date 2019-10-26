@@ -7,7 +7,7 @@ services:
     volumes:
     - ./mount:/mhcnuggets/mount
     environment:
-        - MHC_CLASS=II
+        - MHC_CLASS=I
         - MHC_PEPTIDES_FILENAME=test_peptides.peps
         - MHC_ALLELE=HLA-A02:01
         #- MHC_OUTPUT=/mhcnuggets/mount/output.txt
