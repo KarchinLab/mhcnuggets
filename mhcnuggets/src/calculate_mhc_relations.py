@@ -142,12 +142,12 @@ def parse_args():
                         help='Maximum ic50 value')
 
     parser.add_argument('-q', '--embed_peptides',
-                        type=bool, default=False,
+                        action='store_true', default=False,
                         help='Embedding of peptides used')
 
 
     parser.add_argument('-B', '--binary_predictions',
-                        type=bool, default=False,
+                        action='store_true', default=False,
                         help='Binary predictions used')
 
     
