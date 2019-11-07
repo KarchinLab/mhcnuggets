@@ -7,6 +7,14 @@ peptide-MHC prediction and not because you were [hungry](https://www.mcdonalds.c
 For an overview of how to use MHCnuggets please refer to the Jupyter notebook
 called `user_guide.ipynb` in the repository
 
+If you would like to use MHCnuggets as a docker container, there are several options:
+
+1. [MHCnuggets with command line interface](https://github.com/KarchinLab/mhcnuggets/wiki/Creating-a-mhcnuggets-docker-container-with-command-line-interface)
+
+2. [MHCnuggets with Jupyter Notebook interface](https://github.com/KarchinLab/mhcnuggets/wiki/Creating-a-mhcnuggets-docker-container-with-Jupyter-Notebook-interface)
+
+3. [MHCnuggets container for batch operations](https://github.com/KarchinLab/mhcnuggets/wiki/Creating-and-running-the-MHCnuggets-batch-container)
+
 ### Installation ###
 
 MHCnuggets is `pip` installable as:

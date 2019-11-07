@@ -1,0 +1,22 @@
+#Sample Docker Compose File
+version: '3'
+services: 
+  mhcnuggets:
+    image: mhcnuggets_batch
+    container_name: mhcnuggets_batch
+    volumes:
+    - ./mount:/mhcnuggets/mount
+    environment:
+        - MHC_CLASS=I
+        - MHC_PEPTIDES_FILENAME=test_peptides.peps
+        - MHC_ALLELE=HLA-A02:01
+        #- MHC_OUTPUT=/mhcnuggets/mount/output.txt
+        #- MHC_MODEL=lstm
+        #- MHC_MODEL_WEIGHTS_PATH=saves/production/
+        #- MHC_PICKLE_PATH=data/production/examples_per_allele.pkl
+        #- MHC_MASS_SPEC=false
+        #- MHC_IC50_THRESHOLD=500
+        #- MHC_MAX_IC50=50000
+        #- MHC_EMBED_PEPTIDES=false
+        #- MHC_BINARY_PREDICTIONS=false
+        #- MHC_BA_MODELS=false
