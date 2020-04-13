@@ -91,7 +91,7 @@ def better_allele(candidate_allele, current_closest_allele,
         return False
 
 def find_weighted_optimal_allele(allele_lists, examples_per_allele_shortened,
-                                 short_to_full_names):
+                                 short_to_full_alleles):
     """
     Find optimal closest allele in the given allele_lists based on
     training sample sizes and other specified criteria.
