@@ -131,7 +131,7 @@ def closest_human_allele_supertype(mhc, examples_per_allele):
         allele_lists = supertype_mhcII_allele_clade[_super_type][mhc_shortened]
         closest_mhc = find_weighted_optimal_allele(allele_lists,
                                                    examples_per_allele_shortened,
-                                                   short_to_full_names)
+                                                   short_to_full_alleles)
     return closest_mhc
 
 def closest_human_allele_name(mhc, examples_per_allele):
