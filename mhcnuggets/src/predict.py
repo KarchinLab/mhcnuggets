@@ -86,9 +86,13 @@ def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_pe
     else:
         filehandle = sys.stdout
 
-    print(','.join(('peptide', 'ic50')), file=filehandle)
-    for i, peptide in enumerate(original_peptides):
-        print(','.join((peptide, str(round(ic50s[i],2)))), file=filehandle)
+    try:
+        print(','.join(('peptide', 'ic50')), file=filehandle)
+        for i, peptide in enumerate(original_peptides):
+            print(','.join((peptide, str(round(ic50s[i],2)))), file=filehandle)
+    finally:
+        if output:
+            filehandle.close()
 
 
 
