@@ -1,5 +1,7 @@
 # MHCnuggets
 
+[![Build Status](https://travis-ci.org/richelbilderbeek/mhcnuggets.svg?branch=master)](https://travis-ci.org/richelbilderbeek/mhcnuggets)
+
 Welcome to MHCnuggets! Presumably you're here to do some
 peptide-MHC prediction and not because you were [hungry](https://www.mcdonalds.com/us/en-us/product/chicken-mcnuggets-4-piece.html).
 
