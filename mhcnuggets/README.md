@@ -14,7 +14,7 @@ MHCnuggets is `pip` installable as:
 pip install mhcnuggets
 ```
 
-**Required pacakges:**
+**Required packages:**
 
 * numpy
 * scipy
