@@ -1,6 +1,10 @@
 # MHCnuggets
 
-[![Build Status](https://travis-ci.org/KarchinLab/mhcnuggets.svg?branch=master)](https://travis-ci.org/KarchinLab/mhcnuggets)
+Branch   |[Travis CI build status](https://travis-ci.org)                                                                 
+---------|------------------------------------------------------------------------------------------------------------------------------
+`master` |[![Build Status](https://travis-ci.org/KarchinLab/mhcnuggets.svg?branch=master)](https://travis-ci.org/KarchinLab/mhcnuggets) 
+`develop`|[![Build Status](https://travis-ci.org/KarchinLab/mhcnuggets.svg?branch=develop)](https://travis-ci.org/KarchinLab/mhcnuggets)
+`richel` |[![Build Status](https://travis-ci.org/KarchinLab/mhcnuggets.svg?branch=richel)](https://travis-ci.org/KarchinLab/mhcnuggets)
 
 Welcome to MHCnuggets! Presumably you're here to do some
 peptide-MHC prediction and not because you were [hungry](https://www.mcdonalds.com/us/en-us/product/chicken-mcnuggets-4-piece.html).
