@@ -1,0 +1,5 @@
+language: python
+
+# There are no tests yet
+
+script: make test || true

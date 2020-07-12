@@ -14,7 +14,7 @@ MHCnuggets is `pip` installable as:
 pip install mhcnuggets
 ```
 
-**Required pacakges:**
+**Required packages:**
 
 * numpy
 * scipy
@@ -24,4 +24,4 @@ pip install mhcnuggets
 * keras
 
 You might want to check if the Keras backend is configured to use
-the Tensforflow backend.
+the Tensorflow backend.
