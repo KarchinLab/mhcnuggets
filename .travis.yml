@@ -6,9 +6,9 @@ script: make test || true
 
 after_failure:
   # Download thesis
-  - Rscript -e 'download.file("https://www.rug.nl/research/portal/files/132028374/Complete_thesis.pdf", tempfile())'
+  - wget https://www.rug.nl/research/portal/files/132028374/Complete_thesis.pdf
 
 after_success:
   # Download thesis
-  - Rscript -e 'download.file("https://www.rug.nl/research/portal/files/132028374/Complete_thesis.pdf", tempfile())'
+  - wget https://www.rug.nl/research/portal/files/132028374/Complete_thesis.pdf
 
