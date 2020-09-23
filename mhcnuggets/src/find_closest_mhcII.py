@@ -99,9 +99,10 @@ def find_weighted_optimal_allele(allele_lists, examples_per_allele_shortened,
     closest_mhc = ''
     for allele_list in allele_lists:
         for allele in allele_list:
-            if allele in examples_per_allele_shortened and better_allele(allele, closest_mhc,
+            if allele in examples_per_allele_shortened and better_allele(allele, former_allele,
                                                                          examples_per_allele_shortened):
                 closest_mhc = short_to_full_alleles[allele]
+                former_allele = allele
         if closest_mhc != "":
             break
     return closest_mhc
