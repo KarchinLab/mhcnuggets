@@ -97,6 +97,7 @@ def find_weighted_optimal_allele(allele_lists, examples_per_allele_shortened,
     training sample sizes and other specified criteria.
     """
     closest_mhc = ''
+    former_allele = ''
     for allele_list in allele_lists:
         for allele in allele_list:
             if allele in examples_per_allele_shortened and better_allele(allele, former_allele,
