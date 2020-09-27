@@ -96,14 +96,20 @@ def find_weighted_optimal_allele(allele_lists, examples_per_allele_shortened,
     Find optimal closest allele in the given allele_lists based on
     training sample sizes and other specified criteria.
     """
-    closest_mhc = ''
+    closest_mhc_shortened = ''
     for allele_list in allele_lists:
         for allele in allele_list:
-            if allele in examples_per_allele_shortened and better_allele(allele, closest_mhc,
+            if allele in examples_per_allele_shortened and better_allele(allele, closest_mhc_shortened,
                                                                          examples_per_allele_shortened):
-                closest_mhc = short_to_full_alleles[allele]
-        if closest_mhc != "":
+                closest_mhc_shortened = allele
+        if closest_mhc_shortened != "":
             break
+
+    # If we found a closest MHC, return the full name of the MHC, otherwise return ''
+    if closest_mhc_shortened != '':
+        closest_mhc = short_to_full_alleles[closest_mhc_shortened]
+    else:
+        closest_mhc = ''
     return closest_mhc
 
 def closest_human_allele_supertype(mhc, examples_per_allele):
