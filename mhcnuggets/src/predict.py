@@ -8,6 +8,10 @@ rohit.bhattachar@gmail.com
 
 from __future__ import print_function
 import numpy as np
+try:
+    import cPickle as pickle
+except:
+    import pickle
 from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from mhcnuggets.src.dataset import mask_peptides
 from mhcnuggets.src.dataset import tensorize_keras, map_proba_to_ic50
@@ -19,6 +23,7 @@ from mhcnuggets.src.find_closest_mhcII import closest_allele as closest_mhcII
 
 import os
 import sys
+import math
 MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
 from mhcnuggets.src.aa_embeddings import NUM_AAS
 from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
@@ -27,7 +32,15 @@ from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN
 def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_per_allele.pkl',
             model='lstm', model_weights_path="saves/production/", output=None,
             mass_spec=False, ic50_threshold=500, max_ic50=50000, embed_peptides=False,
-            binary_preds=False, ba_models=False):
+            binary_preds=False, ba_models=False, rank_output=False,
+            hp_ic50s_cI_pickle_path='data/production/mhcI/hp_ic50s_cI.pkl',
+            hp_ic50s_positions_cI_pickle_path='data/production/mhcI/hp_ic50s_positions_cI.pkl',
+            hp_ic50s_hp_lengths_cI_pickle_path='data/production/mhcI/hp_ic50s_hp_lengths_cI.pkl',
+            hp_ic50s_first_percentiles_cI_pickle_path='data/production/mhcI/hp_ic50s_first_percentiles_cI.pkl',
+            hp_ic50s_cII_pickle_path='data/production/mhcII/hp_ic50s_cII.pkl',
+            hp_ic50s_positions_cII_pickle_path='data/production/mhcII/hp_ic50s_positions_cII.pkl',
+            hp_ic50s_hp_lengths_cII_pickle_path='data/production/mhcII/hp_ic50s_hp_lengths_cII.pkl',
+            hp_ic50s_first_percentiles_cII_pickle_path='data/production/mhcII/hp_ic50s_first_percentiles_cII.pkl'):
     '''
     Prediction protocol
     '''
@@ -80,6 +93,38 @@ def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_pe
     preds_continuous, preds_binary = get_predictions(peptides_tensor, model, binary_preds, embed_peptides, ic50_threshold, max_ic50)
     ic50s = [map_proba_to_ic50(p[0], max_ic50) for p in preds_continuous]
 
+    if (rank_output):
+        print("Rank output selected, computing peptide IC50 ranks against human proteome peptides...")
+        if class_.upper() == 'I':
+            hp_ic50_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME,
+                                                           hp_ic50s_cI_pickle_path), 'rb'))
+            ic50_pos_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME
+                                                            , hp_ic50s_positions_cI_pickle_path), 'rb'))
+            hp_lengths_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME
+                                                              , hp_ic50s_hp_lengths_cI_pickle_path), 'rb'))
+            first_percentiles_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME
+                                                                     , hp_ic50s_first_percentiles_cI_pickle_path), 'rb'))
+        elif class_.upper() == 'II':
+            hp_ic50_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME,
+                                                           hp_ic50s_cII_pickle_path), 'rb'))
+            ic50_pos_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME,
+                                                            hp_ic50s_positions_cII_pickle_path), 'rb'))
+            hp_lengths_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME
+                                                              , hp_ic50s_hp_lengths_cII_pickle_path), 'rb'))
+            first_percentiles_pickle = pickle.load(open(os.path.join(MHCNUGGETS_HOME
+                                                                     , hp_ic50s_first_percentiles_cII_pickle_path), 'rb'))
+        ic50_ranks = get_ranks(ic50s,hp_ic50_pickle,hp_lengths_pickle,
+                               first_percentiles_pickle,ic50_pos_pickle,predictor_mhc)
+        if (output):
+            if len(output.split('.')) > 1:
+                rank_filehandle = open(''.join(output.split('.')[:-1] + ['_ranks.'] + \
+                                               [output.split('.')[-1]]), 'w')
+            else:
+                rank_filehandle = open(output + '_ranks', 'w')
+        else:
+            rank_filehandle = sys.stdout
+
+    print("Writing output files...")
     # write out results
     if output:
         filehandle = open(output, 'w')
@@ -90,11 +135,74 @@ def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_pe
         print(','.join(('peptide', 'ic50')), file=filehandle)
         for i, peptide in enumerate(original_peptides):
             print(','.join((peptide, str(round(ic50s[i],2)))), file=filehandle)
+        if (rank_output):
+            print(','.join(('peptide', 'ic50', 'human_proteome_rank')), file=rank_filehandle)
+            for i, peptide in enumerate(original_peptides):
+                print(','.join((peptide, str(round(ic50s[i],2)), str(round(ic50_ranks[i],4)))), file=rank_filehandle)
+
     finally:
         if output:
             filehandle.close()
 
 
+
+def get_ranks(ic50_list, ic50_pickle, hp_lengths_pickle, first_percentiles_pickle, pos_pickle, mhc):
+    """
+    Get percentile rank of every ic50 in the given list, when compared to peptides from
+    the human proteome.
+    """
+    rank_list=[]
+    first_percentile = first_percentiles_pickle[mhc]
+    for ic50 in ic50_list:
+        if not math.isnan(ic50):
+            if ic50 > first_percentile:
+                base_ic50_list = ic50_pickle['downsampled'][mhc]
+                closest_ind, exact_match = binary_search(base_ic50_list, 0,
+                                                         len(base_ic50_list) - 1,ic50)
+                if(exact_match):
+                    (first_occ, last_occ) = pos_pickle['downsampled'][mhc][ic50]
+                    middle_ind = float(first_occ + last_occ) / 2
+                    closest_ind = middle_ind
+                percentile=(closest_ind + 1) / float(len(base_ic50_list))
+            else:
+                base_ic50_list = ic50_pickle['first_percentiles'][mhc]
+                hp_length = hp_lengths_pickle[mhc]
+                closest_ind, exact_match = binary_search(base_ic50_list, 0,
+                                                         len(base_ic50_list) - 1,ic50)
+                if(exact_match):
+                    (first_occ, last_occ) = pos_pickle['first_percentiles'][mhc][ic50]
+                    middle_ind = float(first_occ + last_occ) / 2
+                    closest_ind = middle_ind
+                percentile=(closest_ind + 1) / float(hp_length)
+            rank_list.append(percentile)
+        else:
+            rank_list.append(float('nan'))
+    return rank_list
+
+
+def binary_search(arr, low, high, x):
+    # Check base case
+    if high >= low:
+        mid = (high + low) // 2
+
+        # If element is present at the middle itself
+        if arr[mid] == x:
+            exact_match = True
+            return float(mid), exact_match
+
+            # If element is smaller than mid, then it can only
+            # be present in left subarray
+        elif arr[mid] > x:
+            return binary_search(arr, low, mid - 1, x)
+
+            # Else the element can only be present in right subarray
+        else:
+            return binary_search(arr, mid + 1, high, x)
+    else:
+        # Element is not present in the array
+        # Record the position to the left of our value of interest
+        exact_match = False
+        return float(high), exact_match
 
 def parse_args():
     '''
@@ -157,6 +265,11 @@ def parse_args():
                         action='store_true', default=False,
                         help='Use binding affinity trained models only instead of mass spec trained models')
 
+    parser.add_argument('-r', '--rank_output', type=lambda x: (str(x).lower()== 'true'),
+                        default=False,
+                        help='Additionally write output files of predicted peptide ic50 binding ' + \
+                        'percentiles compared to human proteome peptides')
+
     args = parser.parse_args()
     return vars(args)
 
@@ -173,7 +286,8 @@ def main():
             mhc=opts['allele'], output=opts['output'],mass_spec=opts['mass_spec'],
             ic50_threshold=opts['ic50_threshold'],
             max_ic50=opts['max_ic50'], embed_peptides= opts['embed_peptides'],
-            binary_preds=opts['binary_predictions'],ba_models=opts['ba_models'])
+            binary_preds=opts['binary_predictions'],ba_models=opts['ba_models'],
+            rank_output=opts['rank_output'])
 
 
 if __name__ == '__main__':
