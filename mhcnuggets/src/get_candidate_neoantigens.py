@@ -91,7 +91,8 @@ def output_pm(sample_dict,out_pep_dir,out_sum_dir,sample_name):
         if not os.path.exists(directory):
             os.mkdir(directory)
     mutpeps,refpeps=[],[]
-    summary_df=pd.DataFrame()
+    summary_df=pd.DataFrame({'mutant':[],'wt':[],'mutation_position':[],'AA_mutations':[],
+                             'gene_mutations':[]})
     for mutation in sample_dict:
         if len(sample_dict[mutation]['mut'])==len(sample_dict[mutation]['ref']):
             mutpeps.extend(sample_dict[mutation]['mut'])
@@ -116,7 +117,10 @@ def output_mc(sample_dict,out_pep_dir,out_sum_dir,sample_name):
         if not os.path.exists(directory):
             os.mkdir(directory)
     mutpeps,refpeps=[],[]
-    summary_mut_df,summary_ref_df=pd.DataFrame(),pd.DataFrame()
+    summary_mut_df=pd.DataFrame({'peptide':[],'AA_mutations':[],'gene_mutations':[],
+                                 'mutation_position':[]})
+    summary_ref_df=pd.DataFrame({'peptide':[],'AA_mutations':[],'gene_mutations':[],
+                                'mutation_position':[]})
     for mutation in sample_dict:
         mutpeps.extend(sample_dict[mutation]['mut'])
         refpeps.extend(sample_dict[mutation]['ref'])

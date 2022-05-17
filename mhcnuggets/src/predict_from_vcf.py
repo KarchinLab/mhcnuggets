@@ -6,9 +6,9 @@ Xiaoshan (Melody) Shao
 xshao5@jhu.edu
 '''
 
-from mhcnuggets.src.extract_pep_sequences import read_patient_vcf
-from mhcnuggets.src.get_candidate_neoantigens import get_candidate_neoantigens,output_pm,output_mc
-from mhcnuggets.src.predict import predict
+from extract_pep_sequences import read_patient_vcf
+from get_candidate_neoantigens import get_candidate_neoantigens,output_pm,output_mc
+from predict import predict
 
 import os
 import sys
