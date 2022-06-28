@@ -7,12 +7,12 @@ def readme():
 
 
 setup(name='mhcnuggets',
-      version='2.3.2',
+      version='2.4',
       description='MHCnuggets: Neoantigen peptide MHC binding prediction for class I and II',
       long_description=readme(),
       url='http://karchinlab.org/apps/mhcnuggets.html', # TODO
-      author='Rohit Bhattacharya',
-      author_email='rohit.bhattachar@gmail.com',
+      author='Melody Shaoo',
+      author_email='melody.xiaoshan.shao@gmail.com',
       license='Apache License',
       packages=find_packages(exclude=['tests']),
       include_package_data=True,
@@ -21,7 +21,7 @@ setup(name='mhcnuggets',
           'scipy',
           'scikit-learn',
           'pandas',
-          'tensorflow',
+          'tensorflow>=1.15.0,<2.0.0',
           'keras',
       ],
       classifiers=[
