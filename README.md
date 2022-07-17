@@ -34,8 +34,9 @@ pip install mhcnuggets
 * scipy
 * scikit-learn
 * pandas
-* tensorflow
 * keras
+* tensorflow
+* varcode
 
 You might want to check if the Keras backend is configured to use
 the Tensorflow backend.
