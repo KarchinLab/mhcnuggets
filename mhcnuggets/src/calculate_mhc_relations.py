@@ -16,7 +16,10 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from scipy.stats import kendalltau
-from keras.optimizers import Adam, SGD
+try:
+    from keras.optimizers import Adam, SGD
+except ImportError:
+    from tensorflow.keras.optimizers import Adam, SGD
 import argparse
 import cPickle as pickle
 import pandas as pd

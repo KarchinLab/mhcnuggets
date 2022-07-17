@@ -16,7 +16,10 @@ from mhcnuggets.src.models import get_predictions, mhcnuggets_lstm
 from mhcnuggets.src.dataset import mask_peptides
 from mhcnuggets.src.dataset import tensorize_keras, map_proba_to_ic50
 
-from keras.optimizers import Adam
+try:
+    from keras.optimizers import Adam
+except:
+    from tensorflow.keras.optimizers import Adam
 import argparse
 from mhcnuggets.src.find_closest_mhcI import closest_allele as closest_mhcI
 from mhcnuggets.src.find_closest_mhcII import closest_allele as closest_mhcII

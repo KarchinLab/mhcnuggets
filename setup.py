@@ -7,9 +7,10 @@ def readme():
 
 
 setup(name='mhcnuggets',
-      version='2.4',
+      version='2.4.0',
       description='MHCnuggets: Neoantigen peptide MHC binding prediction for class I and II',
       long_description=readme(),
+      long_description_content_type='text/markdown',
       url='http://karchinlab.org/apps/mhcnuggets.html', # TODO
       author='Melody Shao',
       author_email='melody.xiaoshan.shao@gmail.com',
@@ -21,8 +22,9 @@ setup(name='mhcnuggets',
           'scipy',
           'scikit-learn',
           'pandas',
-          'tensorflow',
           'keras',
+          'tensorflow',
+          'varcode',
       ],
       classifiers=[
       'Development Status :: 5 - Production/Stable',

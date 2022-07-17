@@ -20,7 +20,10 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from scipy.stats import kendalltau
 from scipy.stats import pearsonr
-from keras.optimizers import Adam
+try:
+    from keras.optimizers import Adam
+except:
+    from tensorflow.keras.optimizers import Adam
 import argparse
 from mhcnuggets.src.aa_embeddings import NUM_AAS
 from mhcnuggets.src.aa_embeddings import MHCI_MASK_LEN, MHCII_MASK_LEN

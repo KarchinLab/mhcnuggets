@@ -2,6 +2,7 @@ numpy
 scipy
 scikit-learn
 pandas
-tensorflow
 keras
+tensorflow
+varcode
 

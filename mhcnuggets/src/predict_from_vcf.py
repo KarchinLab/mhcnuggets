@@ -6,16 +6,19 @@ Xiaoshan (Melody) Shao
 xshao5@jhu.edu
 '''
 
-from extract_pep_sequences import read_patient_vcf
-from get_candidate_neoantigens import get_candidate_neoantigens,output_pm,output_mc
-from predict import predict
+from mhcnuggets.src.extract_pep_sequences import read_patient_vcf
+from mhcnuggets.src.get_candidate_neoantigens import get_candidate_neoantigens,output_pm,output_mc
+from mhcnuggets.src.predict import predict
 
 import os
 import sys
 import pandas as pd
 import argparse
 MHCNUGGETS_HOME = os.path.join(os.path.dirname(__file__), '..')
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
 
 def predict_from_vcf(vcf_path,mhcs,class_,output_path,expr_path=None,pep_length_class='both',
@@ -115,7 +118,7 @@ def predict_from_vcf(vcf_path,mhcs,class_,output_path,expr_path=None,pep_length_
    
     hlas=mhcs.split(',')    
     for hla in hlas:
-        print hla
+        print(hla)
         if class_=='I':
             pm_f1=TEMP_CI_PM_FILES[0]
             pm_f2=TEMP_CI_PM_FILES[1]
