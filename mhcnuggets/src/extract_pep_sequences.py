@@ -5,7 +5,10 @@ from pyensembl import ensembl_grch38
 import unicodedata  
 import os
 import argparse
-import cPickle as pickle
+try:
+    import cPickle as pickle
+excpet:
+    import pickle
 import pandas as pd
 import numpy as np
 import io

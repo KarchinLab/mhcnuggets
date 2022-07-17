@@ -1,4 +1,7 @@
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 import os
 import argparse
 import numpy as np
