@@ -7,7 +7,7 @@ import os
 import argparse
 try:
     import cPickle as pickle
-excpet:
+except:
     import pickle
 import pandas as pd
 import numpy as np
