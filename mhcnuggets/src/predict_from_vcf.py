@@ -118,7 +118,7 @@ def predict_from_vcf(vcf_path,mhcs,class_,output_path,expr_path=None,pep_length_
    
     hlas=mhcs.split(',')    
     for hla in hlas:
-        print hla
+        print(hla)
         if class_=='I':
             pm_f1=TEMP_CI_PM_FILES[0]
             pm_f2=TEMP_CI_PM_FILES[1]

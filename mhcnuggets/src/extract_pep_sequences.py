@@ -32,7 +32,7 @@ def get_context_peptides(chrom,pos,ref,alt,ensembl='ensembl_grch37'):
             variant=Variant(contig=chrom_,start=pos,ref=ref,alt=alt,ensembl=ensembl_grch38)
         effects=variant.effects()
     except ValueError as err:
-        print err
+        print(err)
         return '','','','','','','','','','Error:'+str(err)
 
     top_effect=effects.top_priority_effect()
@@ -79,7 +79,7 @@ def get_context_peptides(chrom,pos,ref,alt,ensembl='ensembl_grch37'):
             mutpos=location
             macrochange=True
         if type(top_effect) is varcode.effects.effect_classes.ComplexSubstitution:
-            print top_effect
+            print(top_effect)
         if not mut_seq or not orig_seq:
             mut_seq=top_effect.mutant_protein_sequence
             orig_seq=top_effect.original_protein_sequence
@@ -87,7 +87,7 @@ def get_context_peptides(chrom,pos,ref,alt,ensembl='ensembl_grch37'):
             macrochange=True
         return mut_seq,orig_seq,mutpos,ref_AA,alt_AA,var_gene_id,var_gene,short_description,macrochange,str(top_effect)
     else:
-        print 'no mutation location:',top_effect
+        print('no mutation location:',top_effect)
         return '','','','','',var_gene_id,var_gene,short_description,'',str(top_effect)
 
 
@@ -104,7 +104,7 @@ def read_patient_vcf(file_dir,expression_dir='',ensembl='ensembl_grch37'):
                                 str(row['REF']),str(row['ALT']))
         alts=alt_.split(',')
         if len(alts)>1:
-            print 'warning:alternative has more than one alt',chrom,pos,ref,alt
+            print('warning:alternative has more than one alt',chrom,pos,ref,alt)
         for alt in alts:
             mut_seq,orig_seq,mutpos,ref_AA,alt_AA,var_gene_id,var_gene,short_description,macrochange,top_effect=get_context_peptides(chrom,pos,ref,alt,ensembl)
                 
