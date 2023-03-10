@@ -119,9 +119,11 @@ def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_pe
         ic50_ranks = get_ranks(ic50s,hp_ic50_pickle,hp_lengths_pickle,
                                first_percentiles_pickle,ic50_pos_pickle,predictor_mhc)
         if (output):
-            if len(output.split('.')) > 1:
-                rank_filehandle = open(''.join(output.split('.')[:-1] + ['_ranks.'] + \
-                                               [output.split('.')[-1]]), 'w')
+            (dir_name, full_file_name) = os.path.split(output)
+            if '.' in full_file_name:
+                (file_name, extension) = os.path.splitext(full_file_name)
+                rank_file_name = os.path.join(dir_name, "{}_ranks.{}".format(file_name, extension))
+                rank_filehandle = open(rank_file_name, 'w')
             else:
                 rank_filehandle = open(output + '_ranks', 'w')
         else:
