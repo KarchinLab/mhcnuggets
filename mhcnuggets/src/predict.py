@@ -88,9 +88,9 @@ def predict(class_, peptides_path, mhc, pickle_path='data/production/examples_pe
         model.load_weights(os.path.join(MHCNUGGETS_HOME,model_weights_path,predictor_mhc+'_BA.h5'))
 
     if mass_spec:
-        model.compile(loss='binary_crossentropy', optimizer=Adam(lr=0.001))
+        model.compile(loss='binary_crossentropy', optimizer=Adam(learning_rate=0.001))
     else:
-        model.compile(loss='mse', optimizer=Adam(lr=0.001))
+        model.compile(loss='mse', optimizer=Adam(learning_rate=0.001))
 
     # test model
     preds_continuous, preds_binary = get_predictions(peptides_tensor, model, binary_preds, embed_peptides, ic50_threshold, max_ic50)
